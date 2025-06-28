@@ -6,7 +6,7 @@
 /*   By: aaboudra <aaboudra@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/06/24 19:06:55 by aaboudra          #+#    #+#             */
-/*   Updated: 2025/06/26 15:23:12 by aaboudra         ###   ########.fr       */
+/*   Updated: 2025/06/28 10:56:05 by aaboudra         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -37,7 +37,6 @@ void *ft_memcpy(void *dst, const void *src, size_t n)
 		return (dst);
 	p_sr = (const unsigned char *)src;
 	p_dst = (unsigned char *) dst;
-
 	while (n--)
 		*p_dst++ = *p_sr++;
 	return (dst);

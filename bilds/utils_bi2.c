@@ -6,12 +6,25 @@
 /*   By: aaboudra <aaboudra@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/05/24 22:24:28 by aaboudra          #+#    #+#             */
-/*   Updated: 2025/06/24 19:24:52 by aaboudra         ###   ########.fr       */
+/*   Updated: 2025/06/26 21:09:32 by aaboudra         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
 #include "../minishell.h"
 
+int kontine_puse(char *argg)
+{
+    int i;
+
+    i = 0;
+    while (argg[i])
+    {
+        if(argg[i] == '+' && argg[i + 1] == '=')
+            return 1;
+        i++;
+    }
+    return (0);
+}
 int ft_isalpha(int c)
 {
 	if ((c >= 65 && c <= 90) || (c >= 97 && c <= 122))

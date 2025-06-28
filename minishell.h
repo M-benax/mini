@@ -6,7 +6,7 @@
 /*   By: aaboudra <aaboudra@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/05/01 21:54:20 by aaboudra          #+#    #+#             */
-/*   Updated: 2025/06/26 15:36:31 by aaboudra         ###   ########.fr       */
+/*   Updated: 2025/06/28 11:51:08 by aaboudra         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -66,6 +66,7 @@ typedef struct s_cmd
     char  *in_file;
     int    out_type;
     char  *out_file;
+    int has_redirect_error;
     struct s_cmd *next;
 } t_cmd;
 
@@ -165,6 +166,7 @@ void handle_full_arg_expansion(t_data *data, int *i);
 void handle_partial_arg_expansion(t_data *data, int *i);
 void expand_args_one_cmd_1(t_cmd *cmd, char *expanded, t_data *data, int *i);
 char *expand_line(const char *line, t_data *data);
+int kontine_puse(char *argg);
 
 //--------
 
