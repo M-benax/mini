@@ -3,19 +3,19 @@
 /*                                                        :::      ::::::::   */
 /*   builtin_echo.c                                     :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: aaboudra <aaboudra@student.42.fr>          +#+  +:+       +#+        */
+/*   By: elben-id <elben-id@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
-/*   Created: 2025/06/23 19:36:40 by aaboudra          #+#    #+#             */
-/*   Updated: 2025/06/23 19:36:41 by aaboudra         ###   ########.fr       */
+/*   Created: 2025/06/27 14:11:22 by elben-id          #+#    #+#             */
+/*   Updated: 2025/06/27 14:11:24 by elben-id         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
-
 #include "../minishell.h"
 
-static int is_valid_n_flag(char *arg)
+static int	is_valid_n_flag(char *arg)
 {
-	int i;
+	int	i;
+
 	if (!arg || arg[0] != '-' || arg[1] != 'n')
 		return (0);
 	i = 2;
@@ -28,11 +28,13 @@ static int is_valid_n_flag(char *arg)
 	return (1);
 }
 
-int builtin_echo(char **args)
+int	builtin_echo(char **args)
 {
-	int i = 1;
-	int n_option = 0;
+	int	i;
+	int	n_option;
 
+	i = 1;
+	n_option = 0;
 	while (args[i] && is_valid_n_flag(args[i]))
 	{
 		n_option = 1;
@@ -41,7 +43,7 @@ int builtin_echo(char **args)
 	while (args[i])
 	{
 		write(STDOUT_FILENO, args[i], ft_strlen(args[i]));
-		if (args[i+1])
+		if (args[i + 1])
 			write(STDOUT_FILENO, " ", 1);
 		i++;
 	}

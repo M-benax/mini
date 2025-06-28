@@ -18,7 +18,9 @@ SRC = main/minishell.c ./Parsing/tokenization.c ./utils/utils.c  \
 	 bilds/expand.c bilds/unset.c bilds/utils_bi2.c main/parcing.c \
 	 pipe/pipeline_executor.c bilds/builtin_cd.c bilds/builtin_echo.c \
 	 bilds/builtin_exit.c bilds/builtin_pwd.c bilds/builtins_core.c \
-	 execution/execution_utils.c execution/execution.c \
+	 bilds/builtins_core_02.c \
+	 execution/execution_utils.c execution/execution_utils_02.c \
+	 execution/execution_utils_03.c execution/execution.c \
 	 redirections/redirection_handler.c path/path_handler.c \
 	 memory_management/memrory_helper.c Parsing/parcer_helper.c \
 	 bilds/exapnd_2.c bilds/expand_1.c utils/utils_3.c Parsing/handel_quots.c\
