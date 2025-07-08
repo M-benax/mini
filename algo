@@ -1,0 +1,1116 @@
+# MINISHELL ALGORITHMS
+
+## 1. CD (Change Directory)
+```
+ALGORITHM cd_command(arguments):
+    # Line 1: Check if no arguments or if argument is home directory
+    IF arguments.length == 0 OR arguments[0] == "~" THEN
+        # Line 2: Get HOME environment variable
+        target_dir = get_env("HOME")
+        # Line 3-6: Check if HOME is set
+        IF target_dir == NULL THEN
+            ft_putstr_fd("minishell: cd: HOME not set\n", STDERR_FILENO)
+            return 1
+        END IF
+    # Line 7-14: Handle cd to previous directory
+    ELSE IF arguments[0] == "-" THEN
+        # Line 8: Get OLDPWD environment variable
+        target_dir = get_env("OLDPWD")
+        # Line 9-12: Check if OLDPWD is set
+        IF target_dir == NULL THEN
+            ft_putstr_fd("minishell: cd: OLDPWD not set\n", STDERR_FILENO)
+            return 1
+        END IF
+        # Line 13: Print the directory we're changing to
+        ft_putstr_fd(target_dir, STDOUT_FILENO)
+        ft_putstr_fd("\n", STDOUT_FILENO)
+    # Line 15-16: Use the provided argument as target directory
+    ELSE
+        target_dir = arguments[0]
+    END IF
+    
+    # Line 18-22: Save current directory before changing
+    save_current_dir = getcwd(NULL, 0)
+    IF save_current_dir == NULL THEN
+        # Line 20-21: Handle getcwd error (deleted directory case)
+        handle_getcwd_error()
+        save_current_dir = get_env("PWD")  # Fallback to PWD env var
+    END IF
+    
+    # Line 24-33: Try to change directory
+    IF chdir(target_dir) == -1 THEN
+        # Line 25-32: Handle different error cases
+        IF errno == EACCES THEN
+            ft_putstr_fd("minishell: cd: ", STDERR_FILENO)
+            ft_putstr_fd(target_dir, STDERR_FILENO)
+            ft_putstr_fd(": Permission denied\n", STDERR_FILENO)
+        ELSE IF errno == ENOENT THEN
+            ft_putstr_fd("minishell: cd: ", STDERR_FILENO)
+            ft_putstr_fd(target_dir, STDERR_FILENO)
+            ft_putstr_fd(": No such file or directory\n", STDERR_FILENO)
+        ELSE IF errno == ENOTDIR THEN
+            ft_putstr_fd("minishell: cd: ", STDERR_FILENO)
+            ft_putstr_fd(target_dir, STDERR_FILENO)
+            ft_putstr_fd(": Not a directory\n", STDERR_FILENO)
+        END IF
+        free(save_current_dir)  # Clean up allocated memory
+        return 1
+    END IF
+    
+    # Line 35-42: Update environment variables after successful cd
+    new_dir = getcwd(NULL, 0)
+    IF new_dir == NULL THEN
+        # Line 37-38: Handle getcwd error after changing directory
+        ft_putstr_fd("minishell: cd: getcwd for PWD: No such file or directory\n", STDERR_FILENO)
+        ft_putstr_fd("minishell: cd: getcwd for OLDPWD: No such file or directory\n", STDERR_FILENO)
+    ELSE
+        # Line 40-41: Update environment variables
+        update_env("OLDPWD", save_current_dir)
+        update_env("PWD", new_dir)
+        free(new_dir)  # Clean up allocated memory
+    END IF
+    
+    free(save_current_dir)  # Clean up allocated memory
+    return 0
+```
+
+## 2. ECHO Command
+```
+ALGORITHM echo_command(arguments):
+    # Line 1-2: Initialize variables
+    n_flag = FALSE
+    i = 0
+    
+    # Line 4-10: Process -n flags
+    WHILE i < arguments.length AND arguments[i] starts with "-n" DO
+        # Line 6-7: Check if argument is a valid -n flag (all chars must be 'n')
+        valid_flag = TRUE
+        FOR j = 1 TO length(arguments[i]) - 1 DO
+            IF arguments[i][j] != 'n' THEN
+                valid_flag = FALSE
+                BREAK
+            END IF
+        END FOR
+        
+        # Line 8-9: If valid flag, set n_flag and move to next argument
+        IF valid_flag THEN
+            n_flag = TRUE
+            i++
+        ELSE
+            BREAK
+        END IF
+    END WHILE
+    
+    # Line 12-19: Print all remaining arguments with spaces between them
+    first_arg = TRUE
+    WHILE i < arguments.length DO
+        # Line 14-16: Add space between arguments but not before the first one
+        IF NOT first_arg THEN
+            ft_putstr_fd(" ", STDOUT_FILENO)
+        END IF
+        first_arg = FALSE
+        
+        # Line 17: Print the current argument
+        ft_putstr_fd(arguments[i], STDOUT_FILENO)
+        i++
+    END WHILE
+    
+    # Line 21-23: Add newline if -n flag was not present
+    IF n_flag == FALSE THEN
+        ft_putstr_fd("\n", STDOUT_FILENO)
+    END IF
+    
+    return 0
+```
+
+## 3. EXIT Command
+```
+ALGORITHM exit_command(arguments, data):
+    # Line 1-5: Check if in pipeline and print exit message if not
+    IF data->in_pipeline == FALSE THEN
+        ft_putstr_fd("exit\n", STDERR_FILENO)
+    END IF
+    
+    # Line 7-11: Check for too many arguments
+    IF arguments.length > 1 THEN
+        ft_putstr_fd("minishell: exit: too many arguments\n", STDERR_FILENO)
+        data->last_exit_status = 1
+        return 1  # Don't exit, just return error status
+    END IF
+    
+    # Line 13-24: Determine exit code
+    IF arguments.length == 1 THEN
+        # Line 15-22: Check if argument is numeric
+        IF is_valid_number(arguments[0]) THEN
+            # Line 16: Convert string to number and apply modulo 256
+            exit_code = ft_atoi(arguments[0]) % 256
+            # Handle negative numbers
+            IF exit_code < 0 THEN
+                exit_code += 256
+            END IF
+        ELSE
+            # Line 19-20: Handle non-numeric argument
+            ft_putstr_fd("minishell: exit: ", STDERR_FILENO)
+            ft_putstr_fd(arguments[0], STDERR_FILENO)
+            ft_putstr_fd(": numeric argument required\n", STDERR_FILENO)
+            exit_code = 255
+        END IF
+    ELSE
+        # Line 23: No arguments, use last exit status
+        exit_code = data->last_exit_status
+    END IF
+    
+    # Line 26: Exit with determined code
+    exit(exit_code)
+```
+
+### is_valid_number Function
+```
+ALGORITHM is_valid_number(str):
+    # Check if string is a valid number for exit command
+    i = 0
+    
+    # Skip leading whitespace
+    WHILE str[i] is whitespace DO
+        i++
+    END WHILE
+    
+    # Handle optional sign
+    IF str[i] == '+' OR str[i] == '-' THEN
+        i++
+    END IF
+    
+    # Must have at least one digit
+    IF str[i] == '\0' OR NOT isdigit(str[i]) THEN
+        return FALSE
+    END IF
+    
+    # Check all remaining characters are digits
+    WHILE str[i] != '\0' DO
+        IF NOT isdigit(str[i]) THEN
+            return FALSE
+        END IF
+        i++
+    END WHILE
+    
+    return TRUE
+```
+
+## 4. PWD Command
+```
+ALGORITHM pwd_command(arguments, data):
+    # Line 1: Get current working directory
+    current_dir = getcwd(NULL, 0)
+    
+    # Line 3-12: Handle getcwd errors
+    IF current_dir == NULL THEN
+        # Line 5-10: Check specific error types
+        IF errno == EACCES THEN
+            ft_putstr_fd("minishell: pwd: permission denied\n", STDERR_FILENO)
+        ELSE IF errno == ENOENT THEN
+            ft_putstr_fd("minishell: pwd: error retrieving current directory: No such file or directory\n", STDERR_FILENO)
+        ELSE
+            ft_putstr_fd("minishell: pwd: error retrieving current directory\n", STDERR_FILENO)
+        END IF
+        
+        # Line 11: Try to use PWD environment variable as fallback
+        pwd_env = get_env("PWD")
+        IF pwd_env != NULL THEN
+            ft_putstr_fd(pwd_env, STDOUT_FILENO)
+            ft_putstr_fd("\n", STDOUT_FILENO)
+            return 0
+        END IF
+        
+        return 1
+    END IF
+    
+    # Line 14-15: Print current directory and return success
+    ft_putstr_fd(current_dir, STDOUT_FILENO)
+    ft_putstr_fd("\n", STDOUT_FILENO)
+    free(current_dir)  # Clean up allocated memory
+    return 0
+```
+
+## 5. PIPE Execution
+```
+ALGORITHM execute_pipeline(commands, data):
+    # Line 1-3: Initialize variables
+    pid_list = NULL
+    input_fd = STDIN_FILENO
+    last_cmd_pid = -1
+    
+    # Line 5-45: Process each command in the pipeline
+    FOR i = 0 TO commands.length - 1 DO
+        # Line 7-16: Set up pipe for all but the last command
+        IF i < commands.length - 1 THEN
+            # Line 9-14: Create pipe and handle errors
+            pipe_fds[2]
+            IF pipe(pipe_fds) == -1 THEN
+                handle_pipe_error(input_fd, pid_list, data)
+                return
+            END IF
+            output_fd = pipe_fds[1]  # Write end of pipe
+        ELSE
+            # Line 16: Last command outputs to stdout
+            output_fd = STDOUT_FILENO
+        END IF
+        
+        # Line 18-27: Handle builtin optimization for last command
+        IF is_builtin(commands[i]) AND i == commands.length - 1 AND has_no_redirections(commands[i]) THEN
+            # Line 20-22: Redirect input if needed
+            IF input_fd != STDIN_FILENO THEN
+                saved_stdin = dup(STDIN_FILENO)
+                dup2(input_fd, STDIN_FILENO)
+            END IF
+            
+            # Line 23: Execute builtin directly in parent process
+            data->last_exit_status = execute_builtin(commands[i], data)
+            
+            # Line 24-26: Restore stdin if needed
+            IF input_fd != STDIN_FILENO THEN
+                dup2(saved_stdin, STDIN_FILENO)
+                close(saved_stdin)
+                close(input_fd)
+            END IF
+        ELSE
+            # Line 29-35: Fork and execute command
+            pid = fork_pipeline_segment(commands[i], data, input_fd, output_fd)
+            IF pid == -1 THEN
+                handle_fork_error(input_fd, output_fd, pid_list, data)
+                return
+            END IF
+            
+            # Line 36-37: Add pid to list and track last command pid
+            pid_list = add_pid_to_list(pid_list, pid, data)
+            IF i == commands.length - 1 THEN
+                last_cmd_pid = pid
+            END IF
+        END IF
+        
+        # Line 39-41: Close input fd if it's not stdin
+        IF input_fd != STDIN_FILENO THEN
+            close(input_fd)
+        END IF
+        
+        # Line 43-45: Close output fd and set input for next iteration
+        IF output_fd != STDOUT_FILENO THEN
+            close(output_fd)  # Close write end of pipe
+            input_fd = pipe_fds[0]  # Read end becomes input for next command
+        END IF
+    END FOR
+    
+    # Line 47: Wait for all child processes to complete
+    wait_for_pipeline_pids(pid_list, last_cmd_pid, data)
+```
+
+### fork_pipeline_segment Function
+```
+ALGORITHM fork_pipeline_segment(cmd, data, fd_in, fd_out):
+    # Create a child process
+    pid = fork()
+    
+    # Handle fork error
+    IF pid == -1 THEN
+        perror("minishell: fork")
+        return -1
+    END IF
+    
+    # Child process code
+    IF pid == 0 THEN
+        # Reset signal handlers to default in child
+        signal(SIGINT, SIG_DFL)   # Ctrl+C
+        signal(SIGQUIT, SIG_DFL)  # Ctrl+\
+        
+        # Redirect input if needed
+        IF fd_in != STDIN_FILENO THEN
+            dup2(fd_in, STDIN_FILENO)
+            close(fd_in)
+        END IF
+        
+        # Redirect output if needed
+        IF fd_out != STDOUT_FILENO THEN
+            dup2(fd_out, STDOUT_FILENO)
+            close(fd_out)
+        END IF
+        
+        # Execute the command
+        execute_command_in_child(cmd, data)
+        # This function should not return - it calls exit()
+    END IF
+    
+    # Parent process returns the child's PID
+    return pid
+```
+
+### wait_for_pipeline_pids Function
+```
+ALGORITHM wait_for_pipeline_pids(pid_list, last_cmd_pid, data):
+    # Process each PID in the list
+    current_node = pid_list
+    
+    WHILE current_node != NULL DO
+        # Check if this is the last command in pipeline
+        is_last_in_pipeline = (current_node->pid == last_cmd_pid)
+        
+        # Wait for the process and handle its exit status
+        handle_parent_wait(current_node->pid, is_last_in_pipeline, data)
+        
+        # Move to next PID in list
+        current_node = current_node->next
+    END WHILE
+```
+
+### handle_parent_wait Function
+```
+ALGORITHM handle_parent_wait(pid, is_last_cmd, data):
+    status = 0
+    
+    # Wait for the specific process to complete
+    waitpid(pid, &status, 0)
+    
+    # Only update exit status for the last command in pipeline
+    IF is_last_cmd THEN
+        # Check how process terminated
+        IF WIFEXITED(status) THEN
+            # Normal termination - get exit code
+            data->last_exit_status = WEXITSTATUS(status)
+        ELSE IF WIFSIGNALED(status) THEN
+            # Terminated by signal
+            signal_num = WTERMSIG(status)
+            data->last_exit_status = 128 + signal_num
+            
+            # Print message for certain signals
+            IF signal_num == SIGINT THEN
+                ft_putstr_fd("^C\n", STDERR_FILENO)
+            ELSE IF signal_num == SIGQUIT THEN
+                ft_putstr_fd("^\\Quit (core dumped)\n", STDERR_FILENO)
+            END IF
+        END IF
+    END IF
+```
+
+## 6. PATH Resolution
+```
+ALGORITHM resolve_command_path(command_name, data):
+    # Line 1-9: Handle absolute or relative paths (containing '/')
+    IF ft_strchr(command_name, '/') != NULL THEN
+        # Line 3-8: Check if the path is executable
+        IF access(command_name, F_OK) == -1 THEN
+            # File doesn't exist
+            return NULL
+        ELSE IF access(command_name, X_OK) == -1 THEN
+            # File exists but not executable
+            return ft_strdup(command_name)  # Return path to show permission error
+        ELSE
+            # File exists and is executable
+            return ft_strdup(command_name)
+        END IF
+    END IF
+    
+    # Line 11-15: Get PATH environment variable
+    path_env = get_env("PATH")
+    IF path_env == NULL OR path_env[0] == '\0' THEN
+        # PATH not set or empty
+        return NULL
+    END IF
+    
+    # Line 17: Split PATH into directories
+    path_dirs = ft_split(path_env, ':')
+    IF path_dirs == NULL THEN
+        return NULL  # Memory allocation error
+    END IF
+    
+    # Line 19-27: Try each directory in PATH
+    i = 0
+    WHILE path_dirs[i] != NULL DO
+        # Line 21-22: Create full path by joining directory and command
+        full_path = ft_strjoin3(path_dirs[i], "/", command_name)
+        IF full_path == NULL THEN
+            free_string_array(path_dirs)
+            return NULL  # Memory allocation error
+        END IF
+        
+        # Line 23-25: Check if file exists and is executable
+        IF access(full_path, F_OK | X_OK) == 0 THEN
+            free_string_array(path_dirs)
+            return full_path  # Found executable
+        END IF
+        
+        free(full_path)  # Clean up this attempt
+        i++
+    END WHILE
+    
+    # Line 29: Command not found in PATH
+    free_string_array(path_dirs)
+    return NULL
+```
+
+### ft_strjoin3 Function
+```
+ALGORITHM ft_strjoin3(s1, s2, s3):
+    # Calculate total length needed
+    len1 = ft_strlen(s1)
+    len2 = ft_strlen(s2)
+    len3 = ft_strlen(s3)
+    total_len = len1 + len2 + len3 + 1  # +1 for null terminator
+    
+    # Allocate memory for joined string
+    result = malloc(total_len * sizeof(char))
+    IF result == NULL THEN
+        return NULL
+    END IF
+    
+    # Copy first string
+    i = 0
+    WHILE i < len1 DO
+        result[i] = s1[i]
+        i++
+    END WHILE
+    
+    # Copy second string
+    j = 0
+    WHILE j < len2 DO
+        result[i + j] = s2[j]
+        j++
+    END WHILE
+    
+    # Copy third string
+    k = 0
+    WHILE k < len3 DO
+        result[i + j + k] = s3[k]
+        k++
+    END WHILE
+    
+    # Add null terminator
+    result[i + j + k] = '\0'
+    
+    return result
+```
+
+## 7. REDIRECTIONS
+```
+ALGORITHM handle_redirections(command, data):
+    # Line 1-3: Save original file descriptors
+    saved_stdin = dup(STDIN_FILENO)
+    saved_stdout = dup(STDOUT_FILENO)
+    result = EXIT_SUCCESS
+    
+    # Line 5-24: Handle input redirection
+    IF command->in_type == T_REDIRECT_IN THEN
+        # Line 7-14: Open input file for reading
+        fd = open(command->in_file, O_RDONLY)
+        IF fd == -1 THEN
+            # Line 9-12: Handle file open error
+            ft_putstr_fd("minishell: ", STDERR_FILENO)
+            ft_putstr_fd(command->in_file, STDERR_FILENO)
+            IF errno == ENOENT THEN
+                ft_putstr_fd(": No such file or directory\n", STDERR_FILENO)
+            ELSE IF errno == EACCES THEN
+                ft_putstr_fd(": Permission denied\n", STDERR_FILENO)
+            ELSE
+                ft_putstr_fd(": Error opening file\n", STDERR_FILENO)
+            END IF
+            result = EXIT_FAILURE
+            GOTO cleanup
+        END IF
+        # Line 15-16: Redirect stdin to file
+        dup2(fd, STDIN_FILENO)
+        close(fd)
+    ELSE IF command->in_type == T_HEREDOC THEN
+        # Line 18-24: Handle heredoc input
+        fd = open(command->in_file, O_RDONLY)
+        IF fd == -1 THEN
+            ft_putstr_fd("minishell: heredoc: Error opening temporary file\n", STDERR_FILENO)
+            result = EXIT_FAILURE
+            GOTO cleanup
+        END IF
+        dup2(fd, STDIN_FILENO)
+        close(fd)
+    END IF
+    
+    # Line 26-45: Handle output redirection
+    IF command->out_type == T_REDIRECT_OUT THEN
+        # Line 28-35: Open file for writing (truncate)
+        fd = open(command->out_file, O_WRONLY | O_CREAT | O_TRUNC, 0644)
+        IF fd == -1 THEN
+            # Line 30-33: Handle file open error
+            ft_putstr_fd("minishell: ", STDERR_FILENO)
+            ft_putstr_fd(command->out_file, STDERR_FILENO)
+            IF errno == EISDIR THEN
+                ft_putstr_fd(": Is a directory\n", STDERR_FILENO)
+            ELSE IF errno == EACCES THEN
+                ft_putstr_fd(": Permission denied\n", STDERR_FILENO)
+            ELSE
+                ft_putstr_fd(": Error opening file\n", STDERR_FILENO)
+            END IF
+            result = EXIT_FAILURE
+            GOTO cleanup
+        END IF
+        # Line 34-35: Redirect stdout to file
+        dup2(fd, STDOUT_FILENO)
+        close(fd)
+    ELSE IF command->out_type == T_REDIRECT_APPEND THEN
+        # Line 37-44: Open file for writing (append)
+        fd = open(command->out_file, O_WRONLY | O_CREAT | O_APPEND, 0644)
+        IF fd == -1 THEN
+            # Handle file open error (same as above)
+            ft_putstr_fd("minishell: ", STDERR_FILENO)
+            ft_putstr_fd(command->out_file, STDERR_FILENO)
+            ft_putstr_fd(": Permission denied\n", STDERR_FILENO)
+            result = EXIT_FAILURE
+            GOTO cleanup
+        END IF
+        dup2(fd, STDOUT_FILENO)
+        close(fd)
+    END IF
+    
+    # Line 47: Execute the command with redirections in place
+    IF result == EXIT_SUCCESS THEN
+        result = execute_command(command, data)
+    END IF
+    
+    # Line 49-54: Cleanup and restore file descriptors
+    cleanup:
+    dup2(saved_stdin, STDIN_FILENO)
+    dup2(saved_stdout, STDOUT_FILENO)
+    close(saved_stdin)
+    close(saved_stdout)
+    
+    # Line 56: Return command execution result
+    return result
+```
+
+### setup_heredoc Function
+```
+ALGORITHM setup_heredoc(delimiter, data):
+    # Create a temporary file for heredoc content
+    temp_filename = generate_temp_filename(data)
+    IF temp_filename == NULL THEN
+        return NULL
+    END IF
+    
+    # Open temporary file for writing
+    fd = open(temp_filename, O_WRONLY | O_CREAT | O_TRUNC, 0600)
+    IF fd == -1 THEN
+        free(temp_filename)
+        return NULL
+    END IF
+    
+    # Read lines from stdin until delimiter is found
+    WHILE TRUE DO
+        # Display prompt for heredoc input
+        ft_putstr_fd("> ", STDERR_FILENO)
+        
+        # Read a line from stdin
+        line = get_next_line(STDIN_FILENO)
+        IF line == NULL THEN
+            # EOF or error
+            break
+        END IF
+        
+        # Check if line matches delimiter
+        IF ft_strcmp(line, delimiter) == 0 OR
+           ft_strcmp(line, ft_strjoin(delimiter, "\n")) == 0 THEN
+            free(line)
+            break
+        END IF
+        
+        # Write line to temporary file
+        ft_putstr_fd(line, fd)
+        free(line)
+    END WHILE
+    
+    # Close file and return filename
+    close(fd)
+    return temp_filename
+```
+
+## 8. Command Execution Flow
+```
+ALGORITHM execute_command(command, data):
+    # Line 1-4: Check for NULL command
+    IF command == NULL THEN
+        return EXIT_SUCCESS
+    END IF
+    
+    # Line 6-9: Handle pipeline commands
+    IF command->type == CMD_PIPELINE THEN
+        execute_pipeline(command->pipeline, data)
+        return data->last_exit_status
+    END IF
+    
+    # Line 11-14: Handle commands with redirections
+    IF has_redirections(command) THEN
+        return handle_redirections(command, data)
+    END IF
+    
+    # Line 16-19: Handle builtin commands
+    IF is_builtin(command->name) THEN
+        return execute_builtin(command, data)
+    END IF
+    
+    # Line 21-26: Resolve command path
+    path = resolve_command_path(command->name, data)
+    IF path == NULL THEN
+        ft_putstr_fd("minishell: ", STDERR_FILENO)
+        ft_putstr_fd(command->name, STDERR_FILENO)
+        ft_putstr_fd(": command not found\n", STDERR_FILENO)
+        return 127  # Command not found exit code
+    END IF
+    
+    # Line 28-33: Fork a child process
+    pid = fork()
+    IF pid == -1 THEN
+        ft_putstr_fd("minishell: fork: Resource temporarily unavailable\n", STDERR_FILENO)
+        free(path)  # Clean up allocated path
+        return EXIT_FAILURE
+    END IF
+    
+    # Line 35-41: Child process execution
+    IF pid == 0 THEN
+        # Line 36-37: Set up signal handlers for child
+        signal(SIGINT, SIG_DFL)   # Default Ctrl+C behavior
+        signal(SIGQUIT, SIG_DFL)  # Default Ctrl+\ behavior
+        
+        # Line 38-40: Execute the command
+        execve(path, command->args, data->env_array)
+        ft_putstr_fd("minishell: ", STDERR_FILENO)
+        perror(command->name)  # Print error message
+        exit(126)  # Command found but not executable
+    ELSE
+        # Line 42-46: Parent process waits for child
+        free(path)  # Clean up allocated path
+        status = 0
+        waitpid(pid, &status, 0)
+        return process_exit_status(status, data)
+    END IF
+```
+
+### process_exit_status Function
+```
+ALGORITHM process_exit_status(status, data):
+    # Process the exit status of a child process
+    
+    # Check if process exited normally
+    IF WIFEXITED(status) THEN
+        # Get the exit code
+        exit_code = WEXITSTATUS(status)
+        data->last_exit_status = exit_code
+        return exit_code
+    END IF
+    
+    # Check if process was terminated by a signal
+    IF WIFSIGNALED(status) THEN
+        # Get the signal number
+        signal_num = WTERMSIG(status)
+        
+        # Handle specific signals
+        IF signal_num == SIGINT THEN  # Ctrl+C
+            ft_putstr_fd("^C\n", STDERR_FILENO)
+        ELSE IF signal_num == SIGQUIT THEN  # Ctrl+\
+            ft_putstr_fd("^\\Quit (core dumped)\n", STDERR_FILENO)
+        END IF
+        
+        # Set exit status to 128 + signal number (POSIX convention)
+        data->last_exit_status = 128 + signal_num
+        return 128 + signal_num
+    END IF
+    
+    # Default case (should not happen)
+    return EXIT_FAILURE
+```
+
+### is_builtin Function
+```
+ALGORITHM is_builtin(command_name):
+    # Check if command is a builtin
+    
+    # List of builtin commands
+    builtins = ["echo", "cd", "pwd", "export", "unset", "env", "exit"]
+    
+    # Check if command_name matches any builtin
+    FOR i = 0 TO length(builtins) - 1 DO
+        IF ft_strcmp(command_name, builtins[i]) == 0 THEN
+            return TRUE
+        END IF
+    END FOR
+    
+    return FALSE
+```
+
+### execute_builtin Function
+```
+ALGORITHM execute_builtin(command, data):
+    # Execute the appropriate builtin command
+    
+    # Get command name
+    name = command->name
+    
+    # Dispatch to the correct builtin handler
+    IF ft_strcmp(name, "echo") == 0 THEN
+        return echo_command(command->args + 1, data)  # Skip command name
+    ELSE IF ft_strcmp(name, "cd") == 0 THEN
+        return cd_command(command->args + 1, data)    # Skip command name
+    ELSE IF ft_strcmp(name, "pwd") == 0 THEN
+        return pwd_command(command->args + 1, data)   # Skip command name
+    ELSE IF ft_strcmp(name, "export") == 0 THEN
+        return export_command(command->args + 1, data) # Skip command name
+    ELSE IF ft_strcmp(name, "unset") == 0 THEN
+        return unset_command(command->args + 1, data)  # Skip command name
+    ELSE IF ft_strcmp(name, "env") == 0 THEN
+        return env_command(command->args + 1, data)    # Skip command name
+    ELSE IF ft_strcmp(name, "exit") == 0 THEN
+        return exit_command(command->args + 1, data)   # Skip command name
+    END IF
+    
+    # Should never reach here if is_builtin was called first
+    return EXIT_FAILURE
+```
+
+## 9. Special Cases and Edge Cases
+
+### CD Edge Cases
+```
+# Handle "cd -" when OLDPWD is not set
+IF arguments[0] == "-" AND get_env("OLDPWD") == NULL THEN
+    ft_putstr_fd("minishell: cd: OLDPWD not set\n", STDERR_FILENO)
+    return 1
+END IF
+
+# Handle "cd" when HOME is not set
+IF arguments.length == 0 AND get_env("HOME") == NULL THEN
+    ft_putstr_fd("minishell: cd: HOME not set\n", STDERR_FILENO)
+    return 1
+END IF
+
+# Handle permission denied on parent directory
+IF chdir(target_dir) == -1 AND errno == EACCES THEN
+    ft_putstr_fd("minishell: cd: ", STDERR_FILENO)
+    ft_putstr_fd(target_dir, STDERR_FILENO)
+    ft_putstr_fd(": Permission denied\n", STDERR_FILENO)
+    return 1
+END IF
+
+# Handle deleted current directory
+old_dir = getcwd(NULL, 0)
+IF old_dir == NULL AND errno == ENOENT THEN
+    # Current directory no longer exists
+    ft_putstr_fd("minishell: cd: error retrieving current directory: ", STDERR_FILENO)
+    ft_putstr_fd("getcwd: cannot access parent directories: No such file or directory\n", STDERR_FILENO)
+    # Use PWD environment variable as fallback
+    old_dir = ft_strdup(get_env("PWD"))
+END IF
+
+# Handle symbolic links
+# When changing to a symbolic link directory, PWD should contain the path with the symlink, not the resolved path
+IF is_symlink(target_dir) THEN
+    # Update PWD based on the path used, not the resolved path
+    IF target_dir[0] == '/' THEN
+        # Absolute path
+        update_env("PWD", target_dir)
+    ELSE
+        # Relative path - concatenate with current PWD
+        pwd = get_env("PWD")
+        new_pwd = ft_strjoin3(pwd, "/", target_dir)
+        update_env("PWD", new_pwd)
+        free(new_pwd)
+    END IF
+END IF
+```
+
+### Echo Edge Cases
+```
+# Handle multiple -n flags
+i = 0
+WHILE i < arguments.length DO
+    # Check if argument starts with '-n'
+    IF arguments[i][0] == '-' AND arguments[i][1] == 'n' THEN
+        # Verify all characters after '-n' are also 'n'
+        all_n = TRUE
+        j = 2
+        WHILE arguments[i][j] != '\0' DO
+            IF arguments[i][j] != 'n' THEN
+                all_n = FALSE
+                BREAK
+            END IF
+            j++
+        END WHILE
+        
+        IF all_n THEN
+            n_flag = TRUE
+            i++  # Skip this argument
+            CONTINUE
+        END IF
+    END IF
+    BREAK  # Stop checking for flags once we find a non-flag
+END WHILE
+
+# Handle -n as part of the argument
+# If -n is quoted or is not at the beginning, it's treated as regular text
+IF arguments[0][0] == '"' OR arguments[0][0] == '\'' THEN
+    # This is a quoted argument, treat as regular text
+    n_flag = FALSE
+END IF
+```
+
+### Exit Edge Cases
+```
+# Handle non-numeric arguments
+IF arguments.length == 1 THEN
+    # Check if argument is numeric
+    i = 0
+    is_numeric = TRUE
+    
+    # Skip leading whitespace
+    WHILE arguments[0][i] AND ft_isspace(arguments[0][i]) DO
+        i++
+    END WHILE
+    
+    # Handle optional sign
+    IF arguments[0][i] == '+' OR arguments[0][i] == '-' THEN
+        i++
+    END IF
+    
+    # Check if there's at least one digit
+    IF arguments[0][i] == '\0' OR NOT ft_isdigit(arguments[0][i]) THEN
+        is_numeric = FALSE
+    END IF
+    
+    # Check remaining characters
+    WHILE arguments[0][i] != '\0' DO
+        IF NOT ft_isdigit(arguments[0][i]) THEN
+            is_numeric = FALSE
+            BREAK
+        END IF
+        i++
+    END WHILE
+    
+    IF NOT is_numeric THEN
+        ft_putstr_fd("minishell: exit: ", STDERR_FILENO)
+        ft_putstr_fd(arguments[0], STDERR_FILENO)
+        ft_putstr_fd(": numeric argument required\n", STDERR_FILENO)
+        exit(255)
+    END IF
+END IF
+
+# Handle numeric arguments with spaces
+IF arguments.length == 1 THEN
+    # Trim leading and trailing whitespace
+    trimmed = trim_whitespace(arguments[0])
+    
+    # Check if the trimmed string is numeric
+    IF is_valid_number(trimmed) THEN
+        exit_code = ft_atoi(trimmed) % 256
+        IF exit_code < 0 THEN
+            exit_code += 256
+        END IF
+        free(trimmed)
+        exit(exit_code)
+    ELSE
+        ft_putstr_fd("minishell: exit: ", STDERR_FILENO)
+        ft_putstr_fd(arguments[0], STDERR_FILENO)
+        ft_putstr_fd(": numeric argument required\n", STDERR_FILENO)
+        free(trimmed)
+        exit(255)
+    END IF
+END IF
+
+# Handle arguments outside integer range
+IF arguments.length == 1 AND is_valid_number(arguments[0]) THEN
+    # Check for integer overflow
+    IF ft_strlen(arguments[0]) > 10 THEN  # More digits than INT_MAX
+        ft_putstr_fd("minishell: exit: ", STDERR_FILENO)
+        ft_putstr_fd(arguments[0], STDERR_FILENO)
+        ft_putstr_fd(": numeric argument required\n", STDERR_FILENO)
+        exit(255)
+    END IF
+    
+    # Convert to long long to check range
+    value = ft_atoll(arguments[0])
+    IF value > INT_MAX OR value < INT_MIN THEN
+        ft_putstr_fd("minishell: exit: ", STDERR_FILENO)
+        ft_putstr_fd(arguments[0], STDERR_FILENO)
+        ft_putstr_fd(": numeric argument required\n", STDERR_FILENO)
+        exit(255)
+    END IF
+END IF
+```
+
+### PWD Edge Cases
+```
+# Handle deleted current directory
+current_dir = getcwd(NULL, 0)
+IF current_dir == NULL AND errno == ENOENT THEN
+    # Current directory no longer exists
+    ft_putstr_fd("minishell: pwd: error retrieving current directory: ", STDERR_FILENO)
+    ft_putstr_fd("getcwd: cannot access parent directories: No such file or directory\n", STDERR_FILENO)
+    
+    # Try to use PWD environment variable as fallback
+    pwd_env = get_env("PWD")
+    IF pwd_env != NULL THEN
+        ft_putstr_fd(pwd_env, STDOUT_FILENO)
+        ft_putstr_fd("\n", STDOUT_FILENO)
+        return 0
+    END IF
+    return 1
+END IF
+
+# Handle permission changes after entering directory
+current_dir = getcwd(NULL, 0)
+IF current_dir == NULL AND errno == EACCES THEN
+    ft_putstr_fd("minishell: pwd: permission denied\n", STDERR_FILENO)
+    
+    # Try to use PWD environment variable as fallback
+    pwd_env = get_env("PWD")
+    IF pwd_env != NULL THEN
+        ft_putstr_fd(pwd_env, STDOUT_FILENO)
+        ft_putstr_fd("\n", STDOUT_FILENO)
+        return 0
+    END IF
+    return 1
+END IF
+```
+
+### Pipe Edge Cases
+```
+# Handle pipe errors
+IF pipe(pipe_fds) == -1 THEN
+    perror("minishell: pipe")
+    IF input_fd != STDIN_FILENO THEN
+        close(input_fd)
+    END IF
+    gc_free_pid_list(pid_list, data)
+    data->last_exit_status = EXIT_GENERAL_ERROR
+    return
+END IF
+
+# Handle command not found in pipeline
+IF path == NULL THEN
+    ft_putstr_fd("minishell: ", STDERR_FILENO)
+    ft_putstr_fd(cmd->name, STDERR_FILENO)
+    ft_putstr_fd(": command not found\n", STDERR_FILENO)
+    exit(127)  # Command not found exit code
+END IF
+
+# Handle builtin commands in pipeline
+IF is_builtin(cmd->name) AND NOT is_last_command AND NOT has_redirections(cmd) THEN
+    # For non-last commands in pipeline, fork even for builtins
+    pid = fork()
+    IF pid == 0 THEN
+        # Child process
+        IF fd_in != STDIN_FILENO THEN
+            dup2(fd_in, STDIN_FILENO)
+            close(fd_in)
+        END IF
+        IF fd_out != STDOUT_FILENO THEN
+            dup2(fd_out, STDOUT_FILENO)
+            close(fd_out)
+        END IF
+        exit_code = execute_builtin(cmd, data)
+        exit(exit_code)
+    END IF
+    return pid
+END IF
+```
+
+### PATH Edge Cases
+```
+# Handle empty PATH
+path_env = get_env("PATH")
+IF path_env == NULL OR path_env[0] == '\0' THEN
+    ft_putstr_fd("minishell: ", STDERR_FILENO)
+    ft_putstr_fd(command_name, STDERR_FILENO)
+    ft_putstr_fd(": No such file or directory\n", STDERR_FILENO)
+    return NULL
+END IF
+
+# Handle unset PATH
+path_env = get_env("PATH")
+IF path_env == NULL THEN
+    # Try current directory only if command contains a slash
+    IF ft_strchr(command_name, '/') != NULL THEN
+        IF access(command_name, F_OK | X_OK) == 0 THEN
+            return ft_strdup(command_name)
+        END IF
+    END IF
+    return NULL
+END IF
+
+# Handle relative paths
+IF command_name[0] == '.' THEN
+    # Handle ./command or ../command
+    IF command_name[1] == '/' OR 
+       (command_name[1] == '.' AND command_name[2] == '/') THEN
+        IF access(command_name, F_OK) == -1 THEN
+            return NULL  # File doesn't exist
+        ELSE IF access(command_name, X_OK) == -1 THEN
+            return ft_strdup(command_name)  # File exists but not executable
+        ELSE
+            return ft_strdup(command_name)  # File exists and is executable
+        END IF
+    END IF
+END IF
+
+# Handle executable permissions
+IF access(full_path, F_OK) == 0 AND access(full_path, X_OK) == -1 THEN
+    ft_putstr_fd("minishell: ", STDERR_FILENO)
+    ft_putstr_fd(full_path, STDERR_FILENO)
+    ft_putstr_fd(": Permission denied\n", STDERR_FILENO)
+    free(full_path)
+    free_string_array(path_dirs)
+    return NULL
+END IF
+```
+
+### Redirection Edge Cases
+```
+# Handle permission denied
+fd = open(command->out_file, O_WRONLY | O_CREAT | O_TRUNC, 0644)
+IF fd == -1 AND errno == EACCES THEN
+    ft_putstr_fd("minishell: ", STDERR_FILENO)
+    ft_putstr_fd(command->out_file, STDERR_FILENO)
+    ft_putstr_fd(": Permission denied\n", STDERR_FILENO)
+    return EXIT_FAILURE
+END IF
+
+# Handle file not found
+fd = open(command->in_file, O_RDONLY)
+IF fd == -1 AND errno == ENOENT THEN
+    ft_putstr_fd("minishell: ", STDERR_FILENO)
+    ft_putstr_fd(command->in_file, STDERR_FILENO)
+    ft_putstr_fd(": No such file or directory\n", STDERR_FILENO)
+    return EXIT_FAILURE
+END IF
+
+# Handle directory as redirection target
+fd = open(command->out_file, O_WRONLY | O_CREAT | O_TRUNC, 0644)
+IF fd == -1 AND errno == EISDIR THEN
+    ft_putstr_fd("minishell: ", STDERR_FILENO)
+    ft_putstr_fd(command->out_file, STDERR_FILENO)
+    ft_putstr_fd(": Is a directory\n", STDERR_FILENO)
+    return EXIT_FAILURE
+END IF
+
+# Handle multiple redirections of the same type
+# For multiple input redirections, the last one is used
+IF command->in_type == T_REDIRECT_IN THEN
+    fd = open(command->in_file, O_RDONLY)
+    IF fd == -1 THEN
+        handle_redirection_error(command->in_file)
+        return EXIT_FAILURE
+    END IF
+    dup2(fd, STDIN_FILENO)
+    close(fd)
+END IF
+
+# For multiple output redirections, the last one is used
+IF command->out_type == T_REDIRECT_OUT THEN
+    fd = open(command->out_file, O_WRONLY | O_CREAT | O_TRUNC, 0644)
+    IF fd == -1 THEN
+        handle_redirection_error(command->out_file)
+        return EXIT_FAILURE
+    END IF
+    dup2(fd, STDOUT_FILENO)
+    close(fd)
+END IF
+```

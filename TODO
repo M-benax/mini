@@ -1,0 +1,129 @@
+should expand
+minishell-$ echo $USER'"'
+$USER"
+
+should split
+declare -x a="ls -la"
+minishell-$ ""$a
+minishell: ls -la: command not found
+
+declare -x a="b c"
+minishell-$ $sggsgs export b=$a
+declare -x b="$a"
+
+
+minishell-$ mkdir -p 1/2/3
+minishell-$ cd 1/2/3/
+minishell-$ pwd
+/home/elben-id/Desktop/lalal/1/2/3
+minishell-$ cd ..
+minishell: cd: getcwd for OLDPWD: No such file or directory
+minishell: cd: getcwd for PWD: No such file or directory
+minishell-$ pwd
+/home/elben-id/Desktop/lalal/1/2/3
+minishell-$ cd ..
+minishell: cd: getcwd for OLDPWD: No such file or directory
+minishell: cd: getcwd for PWD: No such file or directory
+minishell-$ pwd
+/home/elben-id/Desktop/lalal/1/2/3
+minishell-$ cd ..
+minishell: cd: getcwd for OLDPWD: No such file or directory
+minishell-$ pwd
+/home/elben-id/Desktop/lalal
+minishell-$ 
+
+elben-id@e1r7p2:~/Desktop/lalal$ rm -rf 1
+elben-id@e1r7p2:~/Desktop/lalal$ 
+
+
+1	   main		      minishell				 Parsing  README.md	TODO
+bilds	   Makefile	      minishell_functions_explained.txt  path	  redirections	utils
+execution  memory_management  minishell.h			 pipe	  segnal
+elben-id@e1r7p2:~/Desktop/lalal$ cd 1/2/3/
+elben-id@e1r7p2:~/Desktop/lalal/1/2/3$ pwd
+/home/elben-id/Desktop/lalal/1/2/3
+elben-id@e1r7p2:~/Desktop/lalal/1/2/3$ cd ..
+cd: error retrieving current directory: getcwd: cannot access parent directories: No such file or directory
+elben-id@e1r7p2:~/Desktop/lalal/1/2/3/..$ pwd
+/home/elben-id/Desktop/lalal/1/2/3/..
+elben-id@e1r7p2:~/Desktop/lalal/1/2/3/..$ cd ..
+cd: error retrieving current directory: getcwd: cannot access parent directories: No such file or directory
+elben-id@e1r7p2:~/Desktop/lalal/1/2/3/../..$ pwd
+/home/elben-id/Desktop/lalal/1/2/3/../..
+elben-id@e1r7p2:~/Desktop/lalal/1/2/3/../..$ cd ..
+elben-id@e1r7p2:~/Desktop/lalal$ pwd
+/home/elben-id/Desktop/lalal
+elben-id@e1r7p2:~/Desktop/lalal$ 
+
+
+elben-id@e1r7p2:~/Desktop/lalal$ chmod 0 hello/
+
+
+minishell-$ mkdir hello
+minishell-$ cd hello
+minishell-$ pwd
+/home/elben-id/Desktop/lalal/hello
+minishell-$ cd ..
+minishell: cd: ..: Permission denied
+minishell-$ pwd
+/home/elben-id/Desktop/lalal/hello
+minishell-$ cd ..
+minishell: cd: ..: Permission denied
+minishell-$ cd ..
+minishell: cd: ..: Permission denied
+minishell-$ 
+
+
+
+elben-id@e1r7p2:~/Desktop/lalal$ bash
+elben-id@e1r7p2:~/Desktop/lalal$ cd hello/
+elben-id@e1r7p2:~/Desktop/lalal/hello$ pwd
+/home/elben-id/Desktop/lalal/hello
+elben-id@e1r7p2:~/Desktop/lalal/hello$ cd ..
+elben-id@e1r7p2:~/Desktop/lalal$ pwd
+/home/elben-id/Desktop/lalal
+elben-id@e1r7p2:~/Desktop/lalal$ pwd
+/home/elben-id/Desktop/lalal
+elben-id@e1r7p2:~/Desktop/lalal$ 
+
+
+
+
+
+minishell-$ unset PATH
+minishell-$ pwd
+/usr/bin
+minishell-$ ls
+minishell: ls: Permission denied
+minishell-$ 
+
+
+minishell-$ exit "    67 "
+exit
+minishell: exit:     67 : numeric argument required
+
+
+
+
+
+
+
+
+
+
+➜  lalal git:(main) ✗ env -i ./minishell 
+minishell-$ 
+minishell-$ env
+pwd=/home/elben-id/Desktop/lalal
+PATH=/home/aaboudra/.local/bin:/home/aaboudra/bin:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin:/usr/games:/usr/local/games:/snap/bin
+minishell-$ ls
+Makefile   bilds	main		   minishell_functions_explained.txt  segnal
+Parsing    execution	memory_management  path				      test
+README.md  gregwerwgwr	minishell	   pipe				      test2
+TODO	   hello	minishell.h	   redirections			      utils
+minishell-$ 
+minishell-$ unset PATH
+minishell-$ env -i ./minishell
+minishell-$ env
+pwd=/home/elben-id/Desktop/lalal
+minishell-$ 

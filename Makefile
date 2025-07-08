@@ -16,13 +16,14 @@ SRC = main/minishell.c ./Parsing/tokenization.c ./utils/utils.c  \
 	./Parsing/parse.c ./utils/utils_2.c ./segnal/signals.c bilds/bilds.c  \
 	 ./utils/ft_split.c Parsing/init_tenv.c bilds/utils_bilds.c bilds/export.c\
 	 bilds/expand.c bilds/unset.c bilds/utils_bi2.c main/parcing.c \
-	 pipe/pipeline_executor.c bilds/builtin_cd.c bilds/builtin_echo.c \
+	 pipe/pipeline_executor.c pipe/pipeline_utils.c bilds/builtin_cd.c bilds/builtin_echo.c \
 	 bilds/builtin_exit.c bilds/builtin_pwd.c bilds/builtins_core.c \
 	 execution/execution_utils.c execution/execution.c \
 	 redirections/redirection_handler.c path/path_handler.c \
 	 memory_management/memrory_helper.c Parsing/parcer_helper.c \
 	 bilds/exapnd_2.c bilds/expand_1.c utils/utils_3.c Parsing/handel_quots.c\
-	 bilds/expand_3.c bilds/expand_line.c
+	 bilds/expand_3.c bilds/expand_line.c bilds/builtins_helper.c \
+	 execution/execution_helper.c execution/execution_utils_helper.c
 
 CC = cc 
 CFLAGS = -Wall -Wextra -Werror -g3 -fsanitize=address

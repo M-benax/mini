@@ -118,7 +118,7 @@ void put_type(t_comand *tokens);
 int	ft_strcmp(char *s1, char *s2);
 int check_syntax(t_comand *tokens);
 void	parse_command(t_comand *tokens, t_data *data);
-void handel_heredoc(char *limiter, t_cmd *cmd, t_data *data);
+int handel_heredoc(char *limiter, t_cmd *cmd, t_data *data);
 int open_file(char **filename, t_data *data);
 char *generate_tmp_filename(t_data *data);
 char	*ft_strjoin(char const *s1, char const *s2, t_data *data);
@@ -185,12 +185,25 @@ void handle_parent_wait(pid_t child_pid, int is_pipeline_last_cmd, t_data *data)
 char **convert_env_list_to_array(t_env *env_list, t_data *data);
 void display_error_message(char *command, char *arg, char *message);
 void gc_free_pid_list(t_pid_list *list, t_data *data);
+t_pid_list *add_pid_to_list(t_pid_list *list_head, pid_t pid, t_data *data);
+void wait_for_pipeline_pids(t_pid_list *pid_list_head, pid_t last_cmd_pid, t_data *data);
+pid_t fork_pipeline_segment(t_cmd *cmd, t_data *data, int fd_in, int fd_out);
+void handle_pipe_error(int input_fd, t_pid_list *pid_list_head, t_data *data);
+void cleanup_heredoc(t_cmd *cmd);
 void apply_redirection(int old_fd, int new_fd);
 int ft_atoi(const char *str);
 void print_export(t_env *env, t_data *data);
 int is_str_numeric(const char *str);
+int count_args(char **args);
 void gc_free_array(char **array, t_data *data);
 int handle_child_redirections(t_cmd *cmd);
 char *find_executable_path(char *cmd_name, t_env *env_list, t_data *data);
+int exec_builtin_cmd(t_cmd *cmd, t_data *data);
+void handle_path_error(t_cmd *cmd, t_data *data);
+void handle_no_executable(t_cmd *cmd, t_data *data);
+void execute_with_path(t_cmd *cmd, t_data *data, char *executable_path);
+int exec_builtin_cmd(t_cmd *cmd, t_data *data);
+void handle_builtin_redirections(t_cmd *cmd, int *stdout_backup, int *stdin_backup);
+void restore_builtin_redirections(int stdout_backup, int stdin_backup);
 
 #endif

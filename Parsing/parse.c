@@ -154,7 +154,11 @@ static t_cmd *parse_single_command(t_comand **tokens, t_data *data)
                 return (NULL);
             }
             limiter = (*tokens)->next->word;
-            handel_heredoc(limiter, node, data);
+            if (handel_heredoc(limiter, node, data) == 1)
+            {
+                write(STDOUT_FILENO, "> ^C\n", 5); // Write prompt, ^C and newline like bash
+                return (NULL);
+            }
             node->in_type = T_HEREDOC;
             *tokens = (*tokens)->next->next;
         }
@@ -188,7 +192,10 @@ void parse_command(t_comand *tokens, t_data *data)
 	{
 		node = parse_single_command(&tokens, data);
 		if (!node)
+		{
+			data->com = NULL;
 			return;
+		}
 
 		if (!head)
 			head = node;

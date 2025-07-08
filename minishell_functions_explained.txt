@@ -1,0 +1,224 @@
+# MINISHELL FUNCTIONS EXPLANATION
+
+## 1. BUILTIN_CD.C
+
+### set_env_var
+- Purpose: Updates or creates an environment variable
+- Parameters: env_list (environment list), var_name, var_value, data
+- External functions:
+  - ft_strcmp: Compares two strings
+  - gc_free_ptr: Frees memory with garbage collector
+  - ft_strdup: Duplicates a string with memory allocation
+
+### get_target_path
+- Purpose: Determines the directory to change to
+- Parameters: args (command arguments), env_list, data
+- External functions:
+  - get_env_value: Gets value of environment variable
+  - display_error_message: Shows error message
+  - gc_free_ptr: Frees memory
+
+### change_directory
+- Purpose: Changes current directory and updates PWD/OLDPWD
+- Parameters: target_path, env_list, data
+- External functions:
+  - getcwd: Gets current working directory (system call)
+  - chdir: Changes directory (system call)
+  - display_error_message: Shows error message
+  - strerror: Gets string describing error number (system call)
+  - errno: Error number variable (system)
+
+### builtin_cd
+- Purpose: Main function for cd command
+- Parameters: args, env_list, data
+- External functions:
+  - All functions above
+
+## 2. BUILTIN_EXIT.C
+
+### is_str_numeric
+- Purpose: Checks if string contains only numeric characters
+- Parameters: str (string to check)
+- External functions: None
+
+### handle_exit_args
+- Purpose: Processes exit command arguments
+- Parameters: args, data
+- External functions:
+  - count_args: Counts number of arguments
+  - is_str_numeric: Checks if string is numeric
+  - display_error_message: Shows error message
+  - gc_free_all: Frees all allocated memory
+  - exit: Exits program (system call)
+  - ft_atoi: Converts string to integer
+
+### builtin_exit
+- Purpose: Main function for exit command
+- Parameters: args, data
+- External functions:
+  - write: Writes to file descriptor (system call)
+  - handle_exit_args: Processes arguments
+  - gc_free_all: Frees all memory
+  - exit: Exits program (system call)
+
+## 3. BUILTIN_ECHO.C
+
+### builtin_echo
+- Purpose: Implements echo command
+- Parameters: args (command arguments)
+- External functions:
+  - ft_strcmp: Compares strings
+  - write: Writes to file descriptor (system call)
+
+## 4. BUILTIN_PWD.C
+
+### builtin_pwd
+- Purpose: Prints current working directory
+- Parameters: env_list, data
+- External functions:
+  - getcwd: Gets current working directory (system call)
+  - get_env_value: Gets environment variable value
+  - printf: Prints formatted output (system call)
+  - display_error_message: Shows error message
+  - strerror: Gets error string (system call)
+  - errno: Error number variable (system)
+
+## 5. EXECUTION.C
+
+### handle_slash_path
+- Purpose: Handles commands with explicit paths
+- Parameters: cmd (command structure)
+- External functions:
+  - access: Checks file permissions (system call)
+  - display_error_message: Shows error message
+  - exit: Exits program (system call)
+
+### handle_no_path
+- Purpose: Handles commands when PATH is not set
+- Parameters: cmd, data
+- External functions:
+  - get_env_value: Gets environment variable value
+  - access: Checks file permissions (system call)
+  - display_error_message: Shows error message
+  - gc_free_ptr: Frees memory
+  - exit: Exits program (system call)
+
+### handle_path_error
+- Purpose: Determines type of path error
+- Parameters: cmd, data
+- External functions:
+  - ft_strchr: Finds character in string
+  - handle_slash_path: Handles explicit paths
+  - handle_no_path: Handles missing PATH
+
+### execute_external_cmd
+- Purpose: Executes external commands
+- Parameters: executable_path, cmd, data
+- External functions:
+  - convert_env_list_to_array: Converts env list to array
+  - execve: Executes program (system call)
+  - display_error_message: Shows error message
+  - strerror: Gets error string (system call)
+  - errno: Error number variable (system)
+  - gc_free_ptr: Frees memory
+  - gc_free_array: Frees array
+  - exit: Exits program (system call)
+
+### execute_command_in_child
+- Purpose: Main function for command execution in child process
+- Parameters: cmd, data
+- External functions:
+  - signal: Sets signal handlers (system call)
+  - handle_child_redirections: Sets up redirections
+  - is_builtin: Checks if command is builtin
+  - execute_builtin_child: Executes builtin in child
+  - find_executable_path: Finds command in PATH
+  - handle_path_error: Handles path errors
+  - execute_external_cmd: Executes external command
+  - exit: Exits program (system call)
+
+## 6. EXECUTION UTILITIES
+
+### find_executable_path
+- Purpose: Searches PATH for executable
+- Parameters: cmd_name, env_list, data
+- External functions:
+  - get_env_value: Gets environment variable value
+  - ft_split: Splits string by delimiter
+  - ft_strjoin: Joins strings
+  - access: Checks file permissions (system call)
+  - gc_free_ptr: Frees memory
+
+### handle_child_redirections
+- Purpose: Sets up file descriptors for redirections
+- Parameters: cmd (command structure)
+- External functions:
+  - open: Opens file (system call)
+  - dup2: Duplicates file descriptor (system call)
+  - close: Closes file descriptor (system call)
+  - display_error_message: Shows error message
+  - strerror: Gets error string (system call)
+  - errno: Error number variable (system)
+
+### convert_env_list_to_array
+- Purpose: Converts env linked list to array for execve
+- Parameters: env_list, data
+- External functions:
+  - count_nodes: Counts nodes in linked list
+  - gc_malloc: Allocates memory with garbage collector
+  - ft_strjoin: Joins strings
+  - ft_strdup: Duplicates string
+
+### display_error_message
+- Purpose: Shows standardized error messages
+- Parameters: command, arg, message
+- External functions:
+  - write: Writes to file descriptor (system call)
+  - ft_strlen: Gets string length
+
+## 7. MEMORY MANAGEMENT
+
+### gc_free_ptr
+- Purpose: Frees a single pointer
+- Parameters: ptr, data
+- External functions:
+  - free: Frees memory (system call)
+
+### gc_free_all
+- Purpose: Frees all allocated memory
+- Parameters: data
+- External functions:
+  - free: Frees memory (system call)
+
+### gc_free_array
+- Purpose: Frees an array of strings
+- Parameters: array, data
+- External functions:
+  - gc_free_ptr: Frees memory with garbage collector
+
+### gc_malloc
+- Purpose: Allocates memory and tracks it
+- Parameters: size, data
+- External functions:
+  - malloc: Allocates memory (system call)
+
+## 8. PIPELINE EXECUTION
+
+### execute_pipeline
+- Purpose: Executes commands connected by pipes
+- Parameters: data
+- External functions:
+  - pipe: Creates pipe (system call)
+  - fork: Creates new process (system call)
+  - close: Closes file descriptor (system call)
+  - dup2: Duplicates file descriptor (system call)
+  - execute_command_in_child: Executes command
+  - waitpid: Waits for process (system call)
+  - WIFEXITED, WEXITSTATUS: Macros to get exit status
+
+### handle_parent_wait
+- Purpose: Waits for child processes and sets exit status
+- Parameters: child_pid, is_pipeline_last_cmd, data
+- External functions:
+  - waitpid: Waits for process (system call)
+  - WIFEXITED, WEXITSTATUS, WIFSIGNALED, WTERMSIG: Macros for process status
