@@ -6,7 +6,7 @@
 /*   By: elben-id <elben-id@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/06/23 19:36:31 by aaboudra          #+#    #+#             */
-/*   Updated: 2025/06/29 18:23:43 by elben-id         ###   ########.fr       */
+/*   Updated: 2025/07/10 14:17:05 by elben-id         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -15,21 +15,26 @@
 int	is_str_numeric(const char *str)
 {
 	int	i;
+	int	has_digits;
 
 	if (!str || *str == '\0')
 		return (0);
 	i = 0;
+	while (str[i] && (str[i] == ' ' || str[i] == '\t'))
+		i++;
 	if (str[i] == '+' || str[i] == '-')
 		i++;
 	if (str[i] == '\0')
 		return (0);
-	while (str[i])
+	has_digits = 0;
+	while (str[i] && (str[i] >= '0' && str[i] <= '9'))
 	{
-		if (str[i] < '0' || str[i] > '9')
-			return (0);
+		has_digits = 1;
 		i++;
 	}
-	return (1);
+	while (str[i] && (str[i] == ' ' || str[i] == '\t'))
+		i++;
+	return (has_digits && str[i] == '\0');
 }
 
 static int	handle_exit_args(char **args, t_data *data)

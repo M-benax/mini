@@ -6,7 +6,7 @@
 /*   By: aaboudra <aaboudra@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/06/24 19:10:37 by aaboudra          #+#    #+#             */
-/*   Updated: 2025/06/26 20:46:55 by aaboudra         ###   ########.fr       */
+/*   Updated: 2025/07/26 16:49:26 by aaboudra         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -30,6 +30,7 @@ char	*expand_var(const char *str, t_data *data)
 {
 	int		i;
 	char	*result;
+	int		y;
 
 	i = 0;
 	result = gc_malloc(1, data);
@@ -39,7 +40,7 @@ char	*expand_var(const char *str, t_data *data)
 	while (str[i])
 	{
 		if (str[i] == '$')
-			handle_dollar(str, &result, &i, data);
+			y = handle_dollar(str, &result, &i, data);
 		else
 		{
 			result = append_char_to_result(result, str[i], data);

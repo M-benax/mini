@@ -6,13 +6,13 @@
 /*   By: aaboudra <aaboudra@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/05/21 18:52:23 by aaboudra          #+#    #+#             */
-/*   Updated: 2025/06/26 21:08:54 by aaboudra         ###   ########.fr       */
+/*   Updated: 2025/08/03 21:03:01 by aaboudra         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
 #include "../minishell.h"
 
-static	void	replace_arg(t_cmd *cmd, int *i_ptr, char **split, t_data *data)
+void	replace_arg(t_cmd *cmd, int *i_ptr, char **split, t_data *data)
 {
 	int	split_count;
 
@@ -24,44 +24,38 @@ static	void	replace_arg(t_cmd *cmd, int *i_ptr, char **split, t_data *data)
 		(*i_ptr)--;
 }
 
-void	expand_args_one_cmd_1(t_cmd *cmd, char *epandd, t_data *data, int *i)
+static int	is_expandable_arg(char *arg)
 {
-	char	**split;
-	int		k;
-
-	split = ft_split(epandd, ' ', data);
-	gc_free_ptr(epandd, data);
-	replace_arg(cmd, i, split, data);
-	k = 0;
-	while (split[k] != NULL)
-	{
-		gc_free_ptr(split[k], data);
-		k++;
-	}
-	gc_free_ptr(split, data);
+	return (arg && ft_strchr(arg, '$') && ft_strcmp(arg, "$") != 0);
 }
 
-static	void	expand_args_one_cmd(t_data *data)
+static void	process_arg_expansion(t_data *data, int *i)
+{
+	int	prev_i;
+
+	prev_i = *i;
+	if (should_expand_full_arg(data->com->args[*i], data, *i))
+		handle_full_arg_expansion(data, i);
+	else
+		handle_partial_arg_expansion(data, i);
+	if (*i == prev_i)
+		(*i)++;
+}
+
+static void	expand_args_one_cmd(t_data *data)
 {
 	int	i;
 
 	i = 0;
 	while (i >= 0 && i < data->com->argc && data->com->args[i])
 	{
-		if (should_skip_expansion(data, i))
+		if (should_skip_expansion(data, i)
+			|| !is_expandable_arg(data->com->args[i]))
 		{
 			i++;
 			continue ;
 		}
-		if (!ft_strchr(data->com->args[i], '$'))
-		{
-			i++;
-			continue ;
-		}
-		if (should_expand_full_arg(data->com->args[i], data, i))
-			handle_full_arg_expansion(data, &i);
-		else
-			handle_partial_arg_expansion(data, &i);
+		process_arg_expansion(data, &i);
 	}
 }
 

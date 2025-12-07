@@ -6,34 +6,11 @@
 /*   By: aaboudra <aaboudra@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/06/29 20:00:00 by aaboudra          #+#    #+#             */
-/*   Updated: 2025/06/29 20:00:01 by aaboudra         ###   ########.fr       */
+/*   Updated: 2025/08/06 23:24:10 by aaboudra         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
 #include "../minishell.h"
-
-void	handle_path_error(t_cmd *cmd, t_data *data)
-{
-	char	*path_env;
-
-	path_env = get_env_value(data->tenv, "PATH", data);
-	if (!path_env || path_env[0] == '\0')
-	{
-		if (access(cmd->args[0], F_OK) == 0)
-			display_error_message(cmd->args[0], NULL, "Permission denied");
-		else
-			display_error_message(cmd->args[0], NULL,
-				"No such file or directory");
-		if (path_env)
-			gc_free_ptr(path_env, data);
-	}
-	else
-	{
-		display_error_message(cmd->args[0], NULL, "command not found");
-		gc_free_ptr(path_env, data);
-	}
-	exit(EXIT_CMD_NOT_FOUND);
-}
 
 void	handle_no_executable(t_cmd *cmd, t_data *data)
 {

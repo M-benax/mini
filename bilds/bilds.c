@@ -6,7 +6,7 @@
 /*   By: aaboudra <aaboudra@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/05/14 18:46:55 by aaboudra          #+#    #+#             */
-/*   Updated: 2025/06/26 20:41:24 by aaboudra         ###   ########.fr       */
+/*   Updated: 2025/07/16 18:22:22 by aaboudra         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -77,6 +77,11 @@ void	print_export(t_env *env, t_data *data)
 	i = 0;
 	while (vars[i])
 	{
+		if (ft_strcmp(vars[i], "s_pwd") == 0)
+		{
+			i++;
+			continue ;
+		}
 		node = find_var(env, vars[i]);
 		if (node->val)
 			printf("declare -x %s=\"%s\"\n", node->var, node->val);

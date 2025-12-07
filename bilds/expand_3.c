@@ -6,7 +6,7 @@
 /*   By: aaboudra <aaboudra@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/06/25 03:57:47 by aaboudra          #+#    #+#             */
-/*   Updated: 2025/06/26 20:59:42 by aaboudra         ###   ########.fr       */
+/*   Updated: 2025/07/26 17:07:19 by aaboudra         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -29,6 +29,8 @@ void	copy_split(t_replace_ctx *ctx, char **n_ars, int *new_flags, int start)
 {
 	int	k;
 
+	if (!ctx->split)
+		return ;
 	k = 0;
 	while (ctx->split[k])
 	{

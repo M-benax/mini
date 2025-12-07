@@ -6,7 +6,7 @@
 /*   By: aaboudra <aaboudra@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/06/24 19:10:13 by aaboudra          #+#    #+#             */
-/*   Updated: 2025/06/26 20:53:44 by aaboudra         ###   ########.fr       */
+/*   Updated: 2025/07/26 16:53:52 by aaboudra         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -26,22 +26,6 @@ int	should_expand_full_arg(char *arg, t_data *data, int i)
 	if (data->com->quoted_flags[i] == 2)
 		return (1);
 	return (0);
-}
-
-char	*expand_dollar_pid(char *result, t_data *data)
-{
-	char	*pid_str;
-	size_t	len;
-	char	*tmp;
-
-	pid_str = ft_itoa(getpid(), data);
-	len = ft_strlen(result) + ft_strlen(pid_str) + 1;
-	tmp = gc_malloc(len, data);
-	ft_strcpy(tmp, result);
-	ft_strcpy(tmp + ft_strlen(result), pid_str);
-	gc_free_ptr(result, data);
-	gc_free_ptr(pid_str, data);
-	return (tmp);
 }
 
 char	*expand_env_variable(char *res, const char *str, int *i, t_data *data)
@@ -85,17 +69,12 @@ char	*append_char_to_result(char *result, char c, t_data *data)
 
 int	handle_dollar(const char *s, char **res, int *i, t_data *d)
 {
-	if (s[*i + 1] == '$')
-	{
-		*res = expand_dollar_pid(*res, d);
-		*i += 2;
-	}
-	else if (s[*i + 1] == '?')
+	if (s[*i + 1] == '?')
 	{
 		*res = ft_itoa(d->last_exit_status, d);
 		*i += 2;
 	}
-	else if (ft_isalpha(s[*i + 1]) || s[*i + 1] == '_')
+	else if (ft_isalpha(s[*i + 1]) || s[*i + 1] == '_' || s[*i + 1] == '$')
 		*res = expand_env_variable(*res, s, i, d);
 	else
 	{

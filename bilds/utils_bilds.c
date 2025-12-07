@@ -6,7 +6,7 @@
 /*   By: aaboudra <aaboudra@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/05/17 17:42:05 by aaboudra          #+#    #+#             */
-/*   Updated: 2025/06/25 04:42:54 by aaboudra         ###   ########.fr       */
+/*   Updated: 2025/07/26 16:54:55 by aaboudra         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -16,35 +16,47 @@ void	print_env(t_env *env)
 {
 	while (env)
 	{
-        if (env->val)
-            printf("%s=%s\n", env->var, env->val); 
+		if (ft_strcmp("PATH", env->var) == 0 && env->flage == 0)
+		{
+			env = env->next;
+			continue ;
+		}
+		if (ft_strcmp("s_pwd", env->var) == 0)
+		{
+			env = env->next;
+			continue ;
+		}
+		if (env->val)
+			printf("%s=%s\n", env->var, env->val);
 		env = env->next;
 	}
 }
+
 int	count_nodes(t_env *env)
 {
-    int	count;
-	
+	int	count;
+
 	count = 0;
-    while (env)
-    {
-        count++;
-        env = env->next;
-    }
-    return (count);
+	while (env)
+	{
+		count++;
+		env = env->next;
+	}
+	return (count);
 }
+
 char	*ft_strcpy(char *s1, char *s2)
 {
-    int i;
+	int	i;
 
-    i = 0;
-    while (s2[i])
-    {
-        s1[i] = s2[i];
-        i++;
-    }
-    s1[i] = s2[i];
-    return (s1);
+	i = 0;
+	while (s2[i])
+	{
+		s1[i] = s2[i];
+		i++;
+	}
+	s1[i] = s2[i];
+	return (s1);
 }
 
 char	*ft_strcat(char *dest, const char *src)
@@ -65,8 +77,11 @@ char	*ft_strcat(char *dest, const char *src)
 	dest[i] = '\0';
 	return (dest);
 }
+
 char	*ft_strchr(const char *s, int c)
 {
+	if (s == NULL || c == 0)
+		return (0);
 	while (*s)
 	{
 		if (*s == c)

@@ -3,10 +3,10 @@
 /*                                                        :::      ::::::::   */
 /*   ft_split.c                                         :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: aaboudra <aaboudra@student.42.fr>          +#+  +:+       +#+        */
+/*   By: elben-id <elben-id@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/05/14 19:21:36 by aaboudra          #+#    #+#             */
-/*   Updated: 2025/06/13 19:29:42 by aaboudra         ###   ########.fr       */
+/*   Updated: 2025/07/13 00:36:19 by elben-id         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -35,11 +35,8 @@ static int	w_count(const char *str, char d)
 			in_word = 1;
 			count++;
 		}
-		else
-		{
-			if (*str == d)
-				in_word = 0;
-		}
+		else if (*str == d)
+			in_word = 0;
 		str++;
 	}
 	return (count);

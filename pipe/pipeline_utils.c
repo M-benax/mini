@@ -3,10 +3,10 @@
 /*                                                        :::      ::::::::   */
 /*   pipeline_utils.c                                   :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: elben-id <elben-id@student.42.fr>          +#+  +:+       +#+        */
+/*   By: aaboudra <aaboudra@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/06/29 20:00:00 by aaboudra          #+#    #+#             */
-/*   Updated: 2025/06/29 18:45:06 by elben-id         ###   ########.fr       */
+/*   Updated: 2025/08/06 23:17:03 by aaboudra         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -46,11 +46,12 @@ void	wait_for_pipeline_pids(t_pid_list *pid_list_head, pid_t last_cmd_pid,
 	}
 }
 
-pid_t	fork_pipeline_segment(t_cmd *cmd, t_data *data, int fd_in, int fd_out)
+pid_t	fork_pipeline_segment(t_cmd *cmd, t_data *data, int fd_in, int fda[2])
 {
 	pid_t	pid;
 
 	pid = fork();
+	g_sigint_received = 700;
 	if (pid == -1)
 	{
 		perror("minishell: fork");
@@ -58,12 +59,13 @@ pid_t	fork_pipeline_segment(t_cmd *cmd, t_data *data, int fd_in, int fd_out)
 	}
 	if (pid == 0)
 	{
-		signal(SIGINT, SIG_DFL);
-		signal(SIGQUIT, SIG_DFL);
+		if (fda[0] != -1)
+			close(fda[0]);
+		signal_init();
 		if (fd_in != STDIN_FILENO)
 			apply_redirection(fd_in, STDIN_FILENO);
-		if (fd_out != STDOUT_FILENO)
-			apply_redirection(fd_out, STDOUT_FILENO);
+		if (fda[1] != STDOUT_FILENO)
+			apply_redirection(fda[1], STDOUT_FILENO);
 		execute_command_in_child(cmd, data);
 	}
 	return (pid);

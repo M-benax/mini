@@ -3,16 +3,16 @@
 /*                                                        :::      ::::::::   */
 /*   redirection_handler.c                              :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: elben-id <elben-id@student.42.fr>          +#+  +:+       +#+        */
+/*   By: aaboudra <aaboudra@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/06/23 19:40:10 by aaboudra          #+#    #+#             */
-/*   Updated: 2025/06/29 19:33:08 by elben-id         ###   ########.fr       */
+/*   Updated: 2025/08/08 15:33:54 by aaboudra         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
 #include "../minishell.h"
 
-static int	open_output_file(char *filename, int type)
+int	open_output_file(char *filename, int type)
 {
 	int	flags;
 	int	fd;
@@ -27,7 +27,7 @@ static int	open_output_file(char *filename, int type)
 	return (fd);
 }
 
-static int	open_input_file(char *filename)
+int	open_input_file(char *filename)
 {
 	int	fd;
 
@@ -41,6 +41,7 @@ void	apply_redirection(int old_fd, int new_fd)
 {
 	if (dup2(old_fd, new_fd) == -1)
 	{
+		close(old_fd);
 		perror("minishell: dup2");
 		exit(EXIT_FAILURE);
 	}

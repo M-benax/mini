@@ -3,16 +3,16 @@
 /*                                                        :::      ::::::::   */
 /*   utils_2.c                                          :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: aaboudra <aaboudra@student.42.fr>          +#+  +:+       +#+        */
+/*   By: elben-id <elben-id@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/05/07 20:01:21 by aaboudra          #+#    #+#             */
-/*   Updated: 2025/06/25 03:30:59 by aaboudra         ###   ########.fr       */
+/*   Updated: 2025/07/13 00:39:52 by elben-id         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
 #include "../minishell.h"
 
-static  int len(int n)
+static int	len(int n)
 {
 	int	len;
 
@@ -29,7 +29,7 @@ static  int len(int n)
 	return (len);
 }
 
-static	int	seg(int n)
+static int	seg(int n)
 {
 	if (n < 0)
 		return (-n);
@@ -61,6 +61,3 @@ char	*ft_itoa(int n, t_data *data)
 	}
 	return (res);
 }
-
-
-

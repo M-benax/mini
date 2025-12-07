@@ -6,7 +6,7 @@
 /*   By: aaboudra <aaboudra@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/06/23 19:38:11 by aaboudra          #+#    #+#             */
-/*   Updated: 2025/06/23 19:38:12 by aaboudra         ###   ########.fr       */
+/*   Updated: 2025/08/06 22:52:44 by aaboudra         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -17,6 +17,7 @@ void	handle_parent_wait(pid_t child_pid, int is_pipeline_last_cmd,
 {
 	int	status;
 	int	child_exit_status;
+	int	signal_received;
 
 	waitpid(child_pid, &status, 0);
 	child_exit_status = 0;
@@ -24,11 +25,15 @@ void	handle_parent_wait(pid_t child_pid, int is_pipeline_last_cmd,
 		child_exit_status = WEXITSTATUS(status);
 	else if (WIFSIGNALED(status))
 	{
-		child_exit_status = 128 + WTERMSIG(status);
-		if (WTERMSIG(status) == SIGQUIT)
+		signal_received = WTERMSIG(status);
+		child_exit_status = 128 + signal_received;
+		if (signal_received == SIGQUIT)
 			write(STDERR_FILENO, "Quit: 3\n", 8);
-		else if (WTERMSIG(status) == SIGINT)
+		else if (signal_received == SIGINT)
+		{
+			g_sigint_received = 1;
 			write(STDERR_FILENO, "\n", 1);
+		}
 	}
 	if (is_pipeline_last_cmd)
 		data->last_exit_status = child_exit_status;

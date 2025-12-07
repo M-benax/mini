@@ -6,49 +6,11 @@
 /*   By: elben-id <elben-id@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/06/23 19:39:30 by aaboudra          #+#    #+#             */
-/*   Updated: 2025/06/29 18:42:01 by elben-id         ###   ########.fr       */
+/*   Updated: 2025/07/10 15:00:26 by elben-id         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
 #include "../minishell.h"
-
-static char	*join_path_cmd(const char *path, const char *cmd, t_data *data)
-{
-	char	*full_path;
-	size_t	len_path;
-	size_t	len_cmd;
-
-	len_path = ft_strlen(path);
-	len_cmd = ft_strlen(cmd);
-	full_path = gc_malloc(len_path + 1 + len_cmd + 1, data);
-	if (!full_path)
-		return (NULL);
-	ft_memcpy(full_path, path, len_path);
-	full_path[len_path] = '/';
-	ft_memcpy(full_path + len_path + 1, cmd, len_cmd);
-	full_path[len_path + 1 + len_cmd] = '\0';
-	return (full_path);
-}
-
-static char	*check_paths_for_cmd(char **paths, char *cmd_name, t_data *data)
-{
-	int		i;
-	char	*full_path_attempt;
-
-	i = 0;
-	while (paths && paths[i])
-	{
-		full_path_attempt = join_path_cmd(paths[i], cmd_name, data);
-		if (full_path_attempt)
-		{
-			if (access(full_path_attempt, X_OK) == 0)
-				return (full_path_attempt);
-			gc_free_ptr(full_path_attempt, data);
-		}
-		i++;
-	}
-	return (NULL);
-}
 
 static char	*handle_absolute_path(char *cmd_name, t_data *data)
 {
@@ -61,16 +23,12 @@ static char	*handle_absolute_path(char *cmd_name, t_data *data)
 	return (NULL);
 }
 
-char	*find_executable_path(char *cmd_name, t_env *env_list, t_data *data)
+static char	*try_path_env(char *cmd_name, t_env *env_list, t_data *data)
 {
 	char	*path_env_value;
 	char	**paths_array;
 	char	*final_path;
 
-	if (!cmd_name || cmd_name[0] == '\0')
-		return (NULL);
-	if (ft_strchr(cmd_name, '/'))
-		return (handle_absolute_path(cmd_name, data));
 	path_env_value = get_env_value(env_list, "PATH", data);
 	if (!path_env_value || path_env_value[0] == '\0')
 	{
@@ -84,4 +42,18 @@ char	*find_executable_path(char *cmd_name, t_env *env_list, t_data *data)
 	final_path = check_paths_for_cmd(paths_array, cmd_name, data);
 	gc_free_array(paths_array, data);
 	return (final_path);
+}
+
+char	*find_executable_path(char *cmd_name, t_env *env_list, t_data *data)
+{
+	char	*final_path;
+
+	if (!cmd_name || cmd_name[0] == '\0')
+		return (NULL);
+	if (ft_strchr(cmd_name, '/'))
+		return (handle_absolute_path(cmd_name, data));
+	final_path = try_path_env(cmd_name, env_list, data);
+	if (final_path)
+		return (final_path);
+	return (try_current_dir(cmd_name, data));
 }

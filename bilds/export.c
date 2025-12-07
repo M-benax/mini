@@ -6,7 +6,7 @@
 /*   By: aaboudra <aaboudra@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/05/17 20:03:48 by aaboudra          #+#    #+#             */
-/*   Updated: 2025/06/26 21:17:36 by aaboudra         ###   ########.fr       */
+/*   Updated: 2025/07/16 18:23:19 by aaboudra         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -59,6 +59,8 @@ static	void	export(char *arg, t_env *envp, t_data *data)
 	t_env	*tmp;
 
 	var = get_var_plus_equal(arg, data);
+	if (ft_strcmp(var, "s_pwd") == 0)
+		return ;
 	val = get_val_plus_equal(arg, data);
 	is_plus_equal = kontine_puse(arg);
 	tmp = find_var(envp, var);

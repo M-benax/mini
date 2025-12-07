@@ -6,13 +6,13 @@
 /*   By: aaboudra <aaboudra@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/05/02 00:35:04 by aaboudra          #+#    #+#             */
-/*   Updated: 2025/06/24 19:35:00 by aaboudra         ###   ########.fr       */
+/*   Updated: 2025/07/26 17:18:17 by aaboudra         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
 #include "../minishell.h"
 
-char    *generate_tmp_filename(t_data *data)
+char	*generate_tmp_filename(t_data *data)
 {
 	static int	i;
 	char		*index_str;
@@ -20,15 +20,22 @@ char    *generate_tmp_filename(t_data *data)
 
 	i = 0;
 	index_str = ft_itoa(i, data);
-	file_name = ft_strjoin(".heredoc_tmp_", index_str, data);
+	file_name = ft_strjoin(ft_strdup("/tmp/heredoc_tmp_", data),
+			index_str, data);
+	while (!access(file_name, F_OK))
+	{
+		i++;
+		index_str = ft_itoa(i, data);
+		file_name = ft_strjoin(ft_strdup("/tmp/heredoc_tmp_", data),
+				index_str, data);
+	}
 	gc_free_ptr(index_str, data);
-	i++;
 	return (file_name);
 }
 
-int open_file(char **filename, t_data *data)
+int	open_file(char **filename, t_data *data)
 {
-	int fd;
+	int	fd;
 
 	*filename = generate_tmp_filename(data);
 	fd = open(*filename, O_CREAT | O_WRONLY | O_TRUNC, 0644);
@@ -41,7 +48,7 @@ int open_file(char **filename, t_data *data)
 	return (fd);
 }
 
-static  char	*collect_token(char *input, int *i, t_data *data)
+static char	*collect_token(char *input, int *i, t_data *data)
 {
 	int		start;
 	char	quote;
@@ -49,8 +56,8 @@ static  char	*collect_token(char *input, int *i, t_data *data)
 	start = *i;
 	while (input[*i] && !is_space(input[*i]) && !is_s_char(input[*i]))
 	{
-		if ((input[*i] == '\'' || input[*i] == '\"') &&
-			(*i == 0 || input[*i - 1] != '\\')) 
+		if ((input[*i] == '\'' || input[*i] == '\"')
+			&& (*i == 0 || input[*i - 1] != '\\'))
 		{
 			quote = input[*i];
 			(*i)++;
@@ -84,10 +91,11 @@ t_comand	*tokens_1(char *input, int *i, t_data *data)
 	}
 	else
 		token = collect_token(input, i, data);
+	token = handel_tok(token, data);
 	return (handle_quotes(token, data));
 }
 
-t_comand  *tokens(char *input, t_data *data)
+t_comand	*tokens(char *input, t_data *data)
 {
 	t_comand	*head;
 	t_comand	*current;
@@ -103,8 +111,8 @@ t_comand  *tokens(char *input, t_data *data)
 	{
 		while (is_space(input[i]))
 			i++;
-		if(!input[i])
-			break;
+		if (!input[i])
+			break ;
 		node = tokens_1(input, &i, data);
 		if (!head)
 			head = node;
@@ -114,5 +122,3 @@ t_comand  *tokens(char *input, t_data *data)
 	}
 	return (head);
 }
-
-

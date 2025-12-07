@@ -6,7 +6,7 @@
 /*   By: elben-id <elben-id@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/05/14 18:46:55 by aaboudra          #+#    #+#             */
-/*   Updated: 2025/06/29 19:12:28 by elben-id         ###   ########.fr       */
+/*   Updated: 2025/07/12 21:23:08 by elben-id         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -35,13 +35,13 @@ int	is_builtin(char *cmd_name)
 
 void	execute_builtin_parent(t_cmd *cmd, t_data *data)
 {
-	int	status_code;
-	int	stdout_backup;
-	int	stdin_backup;
+	int	exit_status;
+	int	stdout_fd;
+	int	stdin_fd;
 
-	status_code = 0;
-	stdout_backup = -1;
-	stdin_backup = -1;
+	exit_status = 0;
+	stdout_fd = -1;
+	stdin_fd = -1;
 	if (!cmd || !cmd->args || !cmd->args[0])
 	{
 		data->last_exit_status = EXIT_CMD_NOT_FOUND;
@@ -49,17 +49,17 @@ void	execute_builtin_parent(t_cmd *cmd, t_data *data)
 	}
 	if (cmd->out_file || cmd->in_file)
 	{
-		handle_builtin_redirections(cmd, &stdout_backup, &stdin_backup);
-		if (handle_child_redirections(cmd) != 0)
+		handle_builtin_redirections(cmd, &stdout_fd, &stdin_fd);
+		if (handle_parent_redirections(cmd) != 0)
 		{
 			data->last_exit_status = EXIT_GENERAL_ERROR;
 			return ;
 		}
 	}
-	status_code = exec_builtin_cmd(cmd, data);
-	restore_builtin_redirections(stdout_backup, stdin_backup);
+	exit_status = exec_builtin_cmd(cmd, data);
+	restore_builtin_redirections(stdout_fd, stdin_fd);
 	if (ft_strcmp(cmd->args[0], "exit") != 0)
-		data->last_exit_status = status_code;
+		data->last_exit_status = exit_status;
 }
 
 int	execute_builtin_child(t_cmd *cmd, t_data *data)
